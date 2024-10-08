@@ -1,7 +1,6 @@
-# Blue-Archive-UI
-Blue Archive-UI
+﻿Blue Archive UI
 
-=====================Presented by SEA group=====================
+======================Presented by SEA group======================
 
 Author: YuntianJinShi
 
