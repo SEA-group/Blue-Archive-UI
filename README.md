@@ -16,4 +16,5 @@ World of Warships/bin/[数字最大的那个]/res_mods/
 
 0.13.9.0    创建本主题包
 0.13.9.0.0 修复战舰上国家旗帜不显示的问题
+0.13.10.0  添加活动图标
 Fix the issue of national flags not displaying on warships
