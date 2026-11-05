@@ -16,21 +16,6 @@
 	'ja': { 'ship': '戦艦', 'plane': '敵機', 'radar': 'レーダー', 'hydro': '水中聴音', 'loc': '潜水艦測位' },
 	'ko': { 'ship': '전함', 'plane': '적기', 'radar': '레이더', 'hydro': '수중청음', 'loc': '잠수함 측위' },
 	'es': { 'ship': 'un acorazado', 'plane': 'un avión', 'radar': 'un radar', 'hydro': 'un hidrófono', 'loc': 'un localizador submarino' } })
-(def constant BHL_FOUND_PREFIX {
-	'zh': '已发现 ', 'en': 'Spotted: ', 'de': 'Gesichtet: ', 'fr': 'Repéré : ',
-	'ru': 'Обнаружен: ', 'ja': '発見 ', 'ko': '발견 ', 'es': 'Avistado: ' })
-(def constant BHL_CLASS {
-	'zh': { 'dd': '驱逐舰', 'ca': '巡洋舰', 'bb': '战列舰', 'cv': '航空母舰', 'ss': '潜艇', 'aux': '辅助舰' },
-	'en': { 'dd': 'Destroyer', 'ca': 'Cruiser', 'bb': 'Battleship', 'cv': 'Carrier', 'ss': 'Submarine', 'aux': 'Auxiliary' },
-	'de': { 'dd': 'Zerstörer', 'ca': 'Kreuzer', 'bb': 'Schlachtschiff', 'cv': 'Flugzeugträger', 'ss': 'U-Boot', 'aux': 'Hilfsschiff' },
-	'fr': { 'dd': 'Destroyer', 'ca': 'Croiseur', 'bb': 'Cuirassé', 'cv': 'Porte-avions', 'ss': 'Sous-marin', 'aux': 'Auxiliaire' },
-	'ru': { 'dd': 'Эсминец', 'ca': 'Крейсер', 'bb': 'Линкор', 'cv': 'Авианосец', 'ss': 'Подлодка', 'aux': 'Вспомогательный' },
-	'ja': { 'dd': '駆逐艦', 'ca': '巡洋艦', 'bb': '戦艦', 'cv': '空母', 'ss': '潜水艦', 'aux': '補助艦' },
-	'ko': { 'dd': '구축함', 'ca': '순양함', 'bb': '전함', 'cv': '항공모함', 'ss': '잠수함', 'aux': '보조함' },
-	'es': { 'dd': 'Destructor', 'ca': 'Crucero', 'bb': 'Acorazado', 'cv': 'Portaaviones', 'ss': 'Submarino', 'aux': 'Auxiliar' } })
-(def constant BHL_WRAP_OPEN { 'zh': '（', 'ja': '（', 'en': ' (', 'de': ' (', 'fr': ' (', 'ru': ' (', 'ko': ' (', 'es': ' (' })
-(def constant BHL_WRAP_CLOSE { 'zh': '）', 'ja': '）', 'en': ')', 'de': ')', 'fr': ')', 'ru': ')', 'ko': ')', 'es': ')' })
-
 # ---- 「被N艘敌舰瞄准」（focusedEnemies）----
 (def constant FOCUS_PREFIX {
 	'zh': '被 ', 'en': 'Aimed at by ', 'de': 'Zielscheibe von ', 'fr': 'Visé par ',
@@ -68,6 +53,7 @@
 
 (def element MainHud () layout=true
 	(scope
+		(macro GET_PREF 'uimodPortraitOn' "'ui.showPerformance'")
 		
 		(var customElementsVisibilityComponent:gfx = "$datahub.getSingleEntity(CC.customElementsVisibility)")
 		(var enabledElements:number = "customElementsVisibilityComponent ? customElementsVisibilityComponent.customElementsVisibility.enabledElements : null" (event "customElementsVisibilityComponent.customElementsVisibility.evChanged"))
@@ -219,10 +205,8 @@
 		(bindcall recreate (bind trigger "invitationEntity"))
 	)
 
-	(element BattleCommanderPortrait)
+	(element BattleCommanderPortrait (bind visible "uimodPortraitOn"))
 	(element BattleSpotAlert)
-	(element BattleSpottedEnemies)
-
 	(element BattleFocusedByCount
 		(style (position = "absolute") (left = "557") (top = "852"))
 	)
@@ -609,49 +593,3 @@
 	)
 )
 
-(def element BattleSpottedEnemies () layout=true
-	(style
-		(position = "absolute")
-		(left = "500")
-		(top = "918")
-		(width = "420")
-		(hitTest = "false")
-	)
-
-	(controller $Repeat renderer='BattleSpottedEnemyLine' count="12")
-)
-
-(def element BattleSpottedEnemyLine () layout=true
-	(scope
-		(var enemyCol:gfx = "$datahub.getCollection(CC.avatar).getChildByPath('team.enemy')")
-		(var count:number = "enemyCol ? enemyCol.items.length : 0" (event "enemyCol.evAdded") (event "enemyCol.evRemoved"))
-		(var ent:gfx = "count > $index ? enemyCol.items[$index] : null" (event "enemyCol.evAdded") (event "enemyCol.evRemoved"))
-		(var vis:bool = "ent && ent.hasComponent(CC.visibility) ? ent.visibility.visible : false" (event "ent.visibility.evChanged"))
-		(var alive:bool = "ent && ent.hasComponent(CC.health) ? ent.health.isAlive : true" (event "ent.health.evIsAliveChanged"))
-		(var nameIDS:str = "ent && ent.avatar && ent.avatar.ship ? ent.avatar.ship.ref.ship.nameIDS : ''")
-		(var subtype:str = "ent && ent.avatar && ent.avatar.ship ? ent.avatar.ship.ref.ship.subtype : ''")
-		(var locProbe:str = "tr('IDS_DESTROYER')")
-		(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
-		(var classKey:str = "subtype == ShipTypes.DESTROYER			? 'dd' :
-							subtype == ShipTypes.CRUISER			? 'ca' :
-							subtype == ShipTypes.BATTLESHIP			? 'bb' :
-							subtype == ShipTypes.AIRCARRIER			? 'cv' :
-							subtype == ShipTypes.SUBMARINE			? 'ss' :
-							subtype == ShipTypes.AUXILIARYSHIP		? 'aux'
-																	: ''")
-		(var typeStr:str = "classKey != '' ? BHL_WRAP_OPEN[lang] + BHL_CLASS[lang][classKey] + BHL_WRAP_CLOSE[lang] : ''")
-	)
-
-	(style (width = 100%))
-
-	(block
-		(bind visible "vis && alive && nameIDS != ''")
-		(style (width = 100%))
-
-		(tf
-			(class "$TextDefaultBold20NM")
-			(style (textAlign = "left") (width = 100%) (paddingTop = 2px) (paddingBottom = 2px) (textColor = 0xFF9FD8FF))
-			(bind text "BHL_FOUND_PREFIX[lang] + tr(nameIDS) + typeStr")
-		)
-	)
-)

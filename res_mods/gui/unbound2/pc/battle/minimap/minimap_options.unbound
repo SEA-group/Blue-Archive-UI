@@ -207,6 +207,50 @@
 	)
 )
 
+# ---- 战斗中头像开关（自定义项）----
+(def constant UIMOD_PORTRAIT_LABEL {
+	'zh': '战斗中头像', 'en': 'Commander portrait', 'de': 'Kommandantenporträt', 'fr': 'Portrait du commandant',
+	'ru': 'Портрет командира', 'ja': '戦闘中の司令官', 'ko': '전투 중 함장', 'es': 'Retrato del comandante' })
+
+(def element UimodPortraitToggle () layout=true
+	(scope
+		(var locProbe:str = "tr('IDS_DESTROYER')")
+		(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
+		(var label:str = "UIMOD_PORTRAIT_LABEL[lang]")
+
+		(macro GET_PREF 'uimodPortraitOn' "'ui.showPerformance'")
+
+		(macro MOUSE_HANDLER_SCOPE)
+		(var clickMethods:array = "[ { type: 'direct.action', name: 'option.set', args: [ 'ui.showPerformance', !uimodPortraitOn ] } ]")
+	)
+
+	(style (flow = "horizontal") (width = "100%") (align = "middle"))
+
+	(element CheckBoxNoLabel
+		_selected = "uimodPortraitOn"
+		_enabled = "true"
+		_rollOver = "rollOver"
+		_interactive = "true"
+	)
+
+	(tf
+		(class $TextDefaultNM)
+		(bind alpha "rollOver && !(mouseDown) ? TA : TC")
+		(style
+			(width = "100%")
+			(marginLeft = "S")
+			(marginTop = -3px)
+		)
+		(bind text "label")
+	)
+
+	(macro MOUSE_HANDLER
+		_enabled = "true"
+		_methods = "clickMethods"
+		_soundSet = "'default_checkbox'"
+	)
+)
+
 (def element MinimapOptionsTooltip () layout=true
 	(style (hitTest = false))
 
@@ -320,6 +364,10 @@
 		(style (marginBottom = "M"))
 	)
 	(element MinimapOptionsSection "''" "minimapAlphasCollection" "_isReadOnly")
+	(block
+		(style (marginTop = "S") (width = 100%))
+		(element UimodPortraitToggle)
+	)
 )
 
 (def element MinimapOptionsSection (_headerText:str, _optionCollection:gfx, _isReadOnly:bool) layout=true
