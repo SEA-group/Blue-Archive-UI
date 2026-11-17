@@ -162,88 +162,36 @@
 	(var name="_variableName" type=bool value="isSpectator || !(isAlive || isOnPlane)")
 )
 
-
-# ---- UImod 小地图开关（自定义项，不走 CC.minimapOption 数据源）----
+# ---- UIMod 开关（小地图两套图 / 战斗中头像）----
 (def constant UIMOD_MINIMAP_LABEL {
 	'zh': 'UImod小地图', 'en': 'UImod minimap', 'de': 'UImod-Minimap', 'fr': 'Minimap UImod',
 	'ru': 'Миникарта UImod', 'ja': 'UImodミニマップ', 'ko': 'UImod 미니맵', 'es': 'Minimapa UImod' })
+(def macro UIMOD_LANG_SCOPE ()
+	(var locProbe:str = "tr('IDS_DESTROYER')")
+	(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
+)
 
 (def element UimodMinimapToggle () layout=true
 	(scope
-		(var locProbe:str = "tr('IDS_DESTROYER')")
-		(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
-		(var label:str = "UIMOD_MINIMAP_LABEL[lang]")
-
-		(macro GET_PREF 'uimodMinimapOn' "'ui.isCurrenciesPanelExpanded'")
-
+		(macro UIMOD_LANG_SCOPE)
+		(var uimodMinimapPref:gfx = "$datahub.getPrimaryEntity(CC.preference, 'ui.isCurrenciesPanelExpanded')")
+		(var uimodMinimapOn:bool = "uimodMinimapPref ? uimodMinimapPref.preference.value : false" (event "uimodMinimapPref.preference.evValueChanged"))
 		(macro MOUSE_HANDLER_SCOPE)
 		(var clickMethods:array = "[ { type: 'direct.action', name: 'option.set', args: [ 'ui.isCurrenciesPanelExpanded', !uimodMinimapOn ] } ]")
 	)
-
 	(style (flow = "horizontal") (width = "100%") (align = "middle"))
-
 	(element CheckBoxNoLabel
 		_selected = "uimodMinimapOn"
 		_enabled = "true"
 		_rollOver = "rollOver"
 		_interactive = "true"
 	)
-
 	(tf
 		(class $TextDefaultNM)
 		(bind alpha "rollOver && !(mouseDown) ? TA : TC")
-		(style
-			(width = "100%")
-			(marginLeft = "S")
-			(marginTop = -3px)
-		)
-		(bind text "label")
+		(style (width = "100%") (marginLeft = "S") (marginTop = -3px))
+		(bind text "UIMOD_MINIMAP_LABEL[lang]")
 	)
-
-	(macro MOUSE_HANDLER
-		_enabled = "true"
-		_methods = "clickMethods"
-		_soundSet = "'default_checkbox'"
-	)
-)
-
-# ---- 战斗中头像开关（自定义项）----
-(def constant UIMOD_PORTRAIT_LABEL {
-	'zh': '战斗中头像', 'en': 'Commander portrait', 'de': 'Kommandantenporträt', 'fr': 'Portrait du commandant',
-	'ru': 'Портрет командира', 'ja': '戦闘中の司令官', 'ko': '전투 중 함장', 'es': 'Retrato del comandante' })
-
-(def element UimodPortraitToggle () layout=true
-	(scope
-		(var locProbe:str = "tr('IDS_DESTROYER')")
-		(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
-		(var label:str = "UIMOD_PORTRAIT_LABEL[lang]")
-
-		(macro GET_PREF 'uimodPortraitOn' "'ui.showPerformance'")
-
-		(macro MOUSE_HANDLER_SCOPE)
-		(var clickMethods:array = "[ { type: 'direct.action', name: 'option.set', args: [ 'ui.showPerformance', !uimodPortraitOn ] } ]")
-	)
-
-	(style (flow = "horizontal") (width = "100%") (align = "middle"))
-
-	(element CheckBoxNoLabel
-		_selected = "uimodPortraitOn"
-		_enabled = "true"
-		_rollOver = "rollOver"
-		_interactive = "true"
-	)
-
-	(tf
-		(class $TextDefaultNM)
-		(bind alpha "rollOver && !(mouseDown) ? TA : TC")
-		(style
-			(width = "100%")
-			(marginLeft = "S")
-			(marginTop = -3px)
-		)
-		(bind text "label")
-	)
-
 	(macro MOUSE_HANDLER
 		_enabled = "true"
 		_methods = "clickMethods"
@@ -326,7 +274,6 @@
 		)
 		(element MinimapRelatedOptions _minimapOptions="minimapOptions" _isReadOnly="_isReadOnly")
 	)
-
 	(block
 		(style (marginTop = "S") (width = "OPTION_COLUMN_WIDTH"))
 		(element UimodMinimapToggle)
@@ -364,10 +311,6 @@
 		(style (marginBottom = "M"))
 	)
 	(element MinimapOptionsSection "''" "minimapAlphasCollection" "_isReadOnly")
-	(block
-		(style (marginTop = "S") (width = 100%))
-		(element UimodPortraitToggle)
-	)
 )
 
 (def element MinimapOptionsSection (_headerText:str, _optionCollection:gfx, _isReadOnly:bool) layout=true

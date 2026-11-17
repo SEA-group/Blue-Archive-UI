@@ -1,4 +1,3 @@
-# by:YunTianJinShi
 (def element nullLayout() layout=true)
 
 (def macro VAR_RELATION (_relationEntity:expression)
@@ -190,36 +189,86 @@
 )
 
 (def macro MODAL_WINDOW_BG () layout=true
+	(scope
+		(macro GET_PREF 'isBlurOptionEnabled' "'graphics.GUI.blur'")
+	)
+
 	(class $FullsizeAbsolute)
 
-	# custom fullscreen image backdrop shared by every modal window
 	(block
+		(bind visible "!isBlurOptionEnabled")
+
 		(class $FullsizeAbsolute)
 		(style
-			(backgroundImage = "'url:../bg/beij.jpg'")
+			(backgroundImage = "'url:../bg/nations_tree_v2.jpg'")
 			(backgroundSize = "cover")
 		)
+
 		(controller $Animation
 			(bindcall play  duration=0.2
+							from = "{ alpha: 0 }"
+							to = "{ alpha: 1 }"
+							action="killAll"
+							(event "startShow")
+			)
+			(bindcall play  duration=0.2
+							delay=0.2
+							from = "{ alpha: 1 }"
+							to = "{ alpha: 0 }"
+							action="killAll"
+							(event "startHide")
+			)
+		)
+	)
+
+	(block
+		(bind visible "isBlurOptionEnabled")
+		(class $FullsizeAbsolute)
+		(element DeclareBlurLayer)
+
+		(mc mc_blurmap_medium
+			(class $FullsizeAbsolute)
+
+			(rendererString = blurMeBaby)
+			(controller $Animation
+				(bindcall play  duration=0.2
+								from = "{ blurIntensity: 0 }"
+								to = "{ blurIntensity: 1 }"
+								action="killAll"
+								(event "startShow")
+				)
+				(bindcall play  duration=0.2
+								delay=0.2
+								from = "{ blurIntensity: 1 }"
+								to = "{ blurIntensity: 0 }"
+								action="killAll"
+								(event "startHide")
+				)
+			)
+		)
+
+		(block
+			(class $FullsizeAbsolute)
+			(style (backgroundColor = 0x80000700))
+			(bind alpha 0)
+
+			(controller $Animation
+				(bindcall play  duration=0.2
+								delay=0.1
 								from = "{ alpha: 0 }"
 								to = "{ alpha: 1 }"
 								action="killAll"
 								(event "startShow")
-			)
-			(bindcall play  duration=0.2
+				)
+				(bindcall play  duration=0.2
 								delay=0.2
 								from = "{ alpha: 1 }"
 								to = "{ alpha: 0 }"
 								action="killAll"
 								(event "startHide")
+				)
 			)
 		)
-	)
-
-	# readability shading over the picture
-	(block
-		(class $FullsizeAbsolute)
-		(style (backgroundColor = 0x66000000))
 	)
 )
 
@@ -493,7 +542,10 @@
 
 (def macro SCOPE_IS_BATTLE_IN_PROGRESS (scopeFieldName:expression='isBattleInProgress')
 	(var battleDataEntity:gfx = "$datahub.getSingleEntity(CC.battleData)")
-	(var battleState:number = "battleDataEntity.battleState.battleState" (event "battleDataEntity.battleState.evBattleStateChanged"))
+	
+	
+	
+	(var battleState:number = "battleDataEntity.battleState ? battleDataEntity.battleState.battleState : -1" (event "battleDataEntity.evAdded") (event "battleDataEntity.battleState.evBattleStateChanged"))
 	(var name="scopeFieldName" type=bool value="battleState == SC.Common.CLIENT_BATTLE_STATE.STARTED || battleState == SC.Common.CLIENT_BATTLE_STATE.END_BATTLE_IDLING")
 )
 
@@ -778,16 +830,16 @@
 	(var isHighContrast:bool="isUIContrastOptionEnabled || !isBlurOptionEnabled")
 )
 
-(def macro PORT_BANNER_BG (_isHighContrastEnabled:expression=false)
+(def macro PORT_BANNER_BG (_isHighContrastEnabled:expression=true, _isLocalPanelVisible:expression=true)
 
 	(scope
 		(event startHide)
 		(event startShow)
-		(macro HIGH_CONTRAST_DATA_SCOPE)
+		(macro HIGH_CONTRAST_DATA_SCOPE) 
 	)
 
 	(block
-		(bind visible "isBlurOptionEnabled")
+		(bind visible "!isHighContrast && _isHighContrastEnabled")
 		(class $FullsizeAbsolute)
 		(element DeclareBlurLayer)
 
@@ -812,6 +864,7 @@
 		)
 
 		(block
+			(bind visible "_isLocalPanelVisible")
 			(class $FullsizeAbsolute)
 			(style (backgroundColor = 0x80000700))
 			(bind alpha "rollOver ? TS : 0.1" watch=true)
@@ -873,6 +926,13 @@
 (def macro STATS_LOG_TOOLTIP_DURATION (_statName:expression)
 	(bindcall externalCall 'direct.action' "[SC.Common.STATISTICS_EVENTS.LOG_START, [_statName]]" init=false watch=false on='evStartShow')
 	(bindcall externalCall 'direct.action' "[SC.Common.STATISTICS_EVENTS.LOG_END, [_statName]]" init=false watch=false on='evStartHide')
+)
+
+
+
+(def macro BATTLE_STATS_LOG_TOOLTIP_DURATION (_event:expression)
+	(bindcall externalCall 'inputMapping.onAction' "['battleStatisticsLogStart', { event: _event }]" init=false watch=false on='evStartShow')
+	(bindcall externalCall 'inputMapping.onAction' "['battleStatisticsLogEnd', { event: _event }]" init=false watch=false on='evStartHide')
 )
 
 (def macro STATS_LOG_WINDOW_DURATION (_statName:expression)
@@ -1047,4 +1107,26 @@
 (def macro PULL_BATTLE_TYPE_CATEGORY()
 	(var selectedGroupCollection:gfx = "$datahub.getCollection(CC.battleTypeCategory).getChildByPath('sorted.selected')")
 	(var selectedGroup:number = "selectedGroupCollection ? selectedGroupCollection.items[0].battleTypeCategory.groupId : 0" (event "selectedGroupCollection.evAdded"))
+)
+
+(def macro GET_LEVEL_UP_CATEGORY_REWARD_SCOPE (_rewardItem:expression)
+	(scope
+		(var category:str = "_rewardItem.subtype")
+		(var level:number = "_rewardItem.params.toLevel")
+		(var iconPath:str = "'url:../reward_icons/level_up_category' + _rewardItem.subtype + '_' + level + '.png'")
+		(var title:str = "subst('IDS_LEVEL_UP_TOOLTIP_CATEGORY' + toUpper(category), [], {_level: level})")
+	)
+)
+
+(def macro PULL_EVENT_LOBBY_SCOPE()
+	(var dockDataEntity:gfx = "$datahub.getSingleEntity(CC.dockData)")
+	(var dockData:gfx = "dockDataEntity ? dockDataEntity.dockData : null")
+	(var portLockedByEventName:str = "dockData ? dockData.portLockedByEvent : ''" (event "dockData.evPortLockedByEventChanged"))
+	(var portLockedByEvent:bool = "portLockedByEventName != ''")
+	(var isCarouselHiddenByEventLobby:bool = "dockData ? dockData.isCarouselHiddenByEventLobby : false" (event "dockData.evIsCarouselHiddenByEventLobbyChanged"))
+	(var eventLobbyExtra:dict = "dockData ? dockData.eventLobbyExtra : {}" (event "dockData.evEventLobbyExtraChanged"))
+)
+
+(def macro PULL_INFOTIP_STATE_SCOPE()
+    (var infotipStateComponent:gfx = "$datahub.getSingleComponent(CC.infotipState)")
 )

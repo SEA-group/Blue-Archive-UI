@@ -1,4 +1,3 @@
-# by:YunTianJinShi
 (def constant LOWER_LOR_MAX_WIDTH 560)
 (def constant LOWER_LOG_MESSAGE_HEIGHT 30)
 (def constant LOWER_LOG_LOW_RESOLUTION_HEIGHT 20)
@@ -147,7 +146,7 @@
 			(tf
 				(class "stageWidth > 1280 ? '$TextDefaultBold19NM' : '$TextDefaultBold17NM'")
 				(style
-					(textAlign = "left")
+					(textAlign = "center")
 					(bind textColor "color")
 				)
 				(bindcall substitute imageOffset="6"  substitutionMap="substituteMap" 	sourceText="textIDS"  postfix='' init=true)

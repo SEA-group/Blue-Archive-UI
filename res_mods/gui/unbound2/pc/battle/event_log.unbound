@@ -1,4 +1,3 @@
-# by:YunTianJinShi
 (def constant EVENT_LOG_MAX_WIDTH 480)
 (def constant EVENT_LOG_SCROLL_AREA_HEIGHT 110)
 (def constant EVENT_LOG_MESSAGE_MIN_HEIGHT 80)
@@ -14,11 +13,10 @@
 
 	(style
 		(position = "absolute")
-		(align = "left|top")
-		(left = "444")
-		(top = "755")
-		(width = "520")
+		(align = "center|top")
+		(bind width "stageWidth")
 		(height = "EVENT_LOG_SCROLL_AREA_HEIGHT")
+		(top = 146px)
 		(hitTest = false)
 	)
 
@@ -36,17 +34,17 @@
 
 		(content
 			(style
-				(width = 100%)
+				(bind width "stageWidth")
 				(height = "EVENT_LOG_SCROLL_AREA_HEIGHT")
-				(align = "left")
+				(align = "center")
 			)
 
 			(block
 				(style
-					(width = 100%)
+					(width = "EVENT_LOG_MAX_WIDTH")
 					(height = 100%)
 
-					(align = "left|top")
+					(align = "center|top")
 				)
 
 				(controller $Repeat renderer='EventLogMessage'
@@ -73,7 +71,7 @@
 		(width = 100%)
 		(minHeight = "EVENT_LOG_MESSAGE_MIN_HEIGHT")
 		(position = "absolute")
-		(align = "left|middle")
+		(align = "center|middle")
 	)
 
 	(controller $Animation
@@ -125,13 +123,13 @@
 	(style
 		(width = 100%)
 		(minHeight = "EVENT_LOG_MESSAGE_MIN_HEIGHT")
-		(align = "left|middle")
+		(align = "center|middle")
 	)
 
 	(block
 		(style
-			(width = 100%)
-			(align = "left|middle")
+			(width = "EVENT_LOG_MAX_WIDTH")
+			(align = "center|middle")
 			(paddingTop = 23px)
 		)
 
@@ -139,7 +137,7 @@
 			(bind class "textClass")
 
 			(style
-				(textAlign = "left")
+				(textAlign = "center")
 				(bind textColor "color")
 			)
 
@@ -169,7 +167,7 @@
 	(style
 		(width = 100%)
 		(minHeight = "EVENT_LOG_MESSAGE_MIN_HEIGHT")
-		(align = "left|middle")
+		(align = "center|middle")
 		(backgroundSize = "fill")
 		(backgroundImage = 'url:../battle_hud/central_log/event_log_bg_9scale.png')
 		(scale9grid = [4, 3, 4, 3])
@@ -180,7 +178,7 @@
 			(width = "EVENT_LOG_MAX_WIDTH - EVENT_LOG_MESSAGE_MARGIN")
 			(paddingTop = "SXS")
 			(paddingBottom = "SXS")
-			(align = "left|middle")
+			(align = "center|middle")
 		)
 
 		(block
@@ -191,7 +189,7 @@
 				(alpha = "TS")
 
 				(style
-					(textAlign = "left")
+					(textAlign = "center")
 					(width = "EVENT_LOG_MAX_WIDTH - EVENT_LOG_MESSAGE_MARGIN")
 					(marginBottom = "S")
 				)
@@ -205,7 +203,7 @@
 			(alpha = "TA")
 
 			(style
-				(textAlign = "left")
+				(textAlign = "center")
 				(width = "EVENT_LOG_MAX_WIDTH - EVENT_LOG_MESSAGE_MARGIN")
 				(bind textColor "color")
 			)

@@ -1,59 +1,5 @@
-# by:YunTianJinShi
-# ---- battle hud localization (zh/en/de/fr/ru/ja/ko/es, fallback en) ----
-(def constant BHL_SPOT_PREFIX {
-	'zh': '被', 'en': 'Spotted by ', 'de': 'Entdeckt von ', 'fr': 'Détecté par ',
-	'ru': 'Обнаружен: ', 'ja': '', 'ko': '', 'es': 'Detectado por ' })
-(def constant BHL_SPOT_SUFFIX {
-	'zh': '发现，请注意规避', 'en': ' - evade!', 'de': ' - ausweichen!', 'fr': ' - manœuvrez !',
-	'ru': ' - уклоняйтесь!', 'ja': 'に発見されました。回避してください', 'ko': '에게 발견되었습니다. 회피하세요',
-	'es': ' - ¡evada!' })
-(def constant BHL_SPOT_TYPE {
-	'zh': { 'ship': '战舰', 'plane': '敌机', 'radar': '雷达', 'hydro': '水听', 'loc': '潜艇定位' },
-	'en': { 'ship': 'an enemy battleship', 'plane': 'an enemy plane', 'radar': 'radar', 'hydro': 'a hydrophone', 'loc': 'a submarine locator' },
-	'de': { 'ship': 'ein Schlachtschiff', 'plane': 'ein Flugzeug', 'radar': 'Radar', 'hydro': 'ein Hydrophon', 'loc': 'eine U-Boot-Ortung' },
-	'fr': { 'ship': 'un cuirassé', 'plane': 'un avion', 'radar': 'un radar', 'hydro': 'un hydrophone', 'loc': 'une localisation sous-marine' },
-	'ru': { 'ship': 'линкор', 'plane': 'самолёт', 'radar': 'радар', 'hydro': 'гидрофон', 'loc': 'локатор подлодок' },
-	'ja': { 'ship': '戦艦', 'plane': '敵機', 'radar': 'レーダー', 'hydro': '水中聴音', 'loc': '潜水艦測位' },
-	'ko': { 'ship': '전함', 'plane': '적기', 'radar': '레이더', 'hydro': '수중청음', 'loc': '잠수함 측위' },
-	'es': { 'ship': 'un acorazado', 'plane': 'un avión', 'radar': 'un radar', 'hydro': 'un hidrófono', 'loc': 'un localizador submarino' } })
-# ---- 「被N艘敌舰瞄准」（focusedEnemies）----
-(def constant FOCUS_PREFIX {
-	'zh': '被 ', 'en': 'Aimed at by ', 'de': 'Zielscheibe von ', 'fr': 'Visé par ',
-	'ru': 'Под прицелом ', 'ja': '敵艦 ', 'ko': '적함 ', 'es': 'Apuntado por ' })
-(def constant FOCUS_SUFFIX {
-	'zh': ' 艘敌舰瞄准', 'en': ' ships', 'de': ' Schiffen', 'fr': ' navires',
-	'ru': ' кораблей', 'ja': ' 隻から照準されています', 'ko': ' 척에게 조준되고 있습니다', 'es': ' buques' })
-
-(def element BattleFocusedByCount () layout=true
-	(scope
-		(var bi:gfx = "$datahub.getSingleEntity(CC.battleIndication)")
-		(var focused:number = "bi ? bi.alertIndication.focusedEnemies : 0" (event "bi.alertIndication.evFocusedEnemiesChanged"))
-
-		(var locProbe:str = "tr('IDS_DESTROYER')")
-		(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
-	)
-	(style (position = "absolute"))
-
-	(block
-		(bind visible "focused > 0")
-		(style (width = "420") (hitTest = false))
-		(tf
-			(class $TextDefaultBold20NM)
-			(style (textAlign = "left") (textColor = 0xFF3DDC84))
-			(bind text "FOCUS_PREFIX[lang] + focused + FOCUS_SUFFIX[lang]")
-		)
-	)
-)
-
-# ---- battle commander portrait (mod) ----
-(def constant BATTLE_CAPTAIN_LEFT 330)
-(def constant BATTLE_CAPTAIN_BOTTOM 0)
-(def constant BATTLE_CAPTAIN_WIDTH 160)
-(def constant BATTLE_CAPTAIN_HEIGHT 147)
-
 (def element MainHud () layout=true
 	(scope
-		(macro GET_PREF 'uimodPortraitOn' "'ui.showPerformance'")
 		
 		(var customElementsVisibilityComponent:gfx = "$datahub.getSingleEntity(CC.customElementsVisibility)")
 		(var enabledElements:number = "customElementsVisibilityComponent ? customElementsVisibilityComponent.customElementsVisibility.enabledElements : null" (event "customElementsVisibilityComponent.customElementsVisibility.evChanged"))
@@ -203,23 +149,6 @@
 			)
 		)
 		(bindcall recreate (bind trigger "invitationEntity"))
-	)
-
-	(element BattleCommanderPortrait (bind visible "uimodPortraitOn"))
-	(element BattleSpotAlert)
-	(element BattleFocusedByCount
-		(style (position = "absolute") (left = "557") (top = "852"))
-	)
-
-	(controller $Instance renderer='LowerLog'
-		(exprs
-			(style
-				(position = "absolute")
-				(left = "444")
-				(bottom = "150")
-				(width = "520")
-			)
-		)
 	)
 
 	
@@ -440,6 +369,9 @@
 		)
 		
 		(element BattleMinimapUb2 $autoPerfTestGroup='minimap')
+(element BattleFocusedByCount
+		(style (position = "absolute") (bind left "stageWidth * 0.219 + 57") (top = "861"))
+	)
 	)
 )
 
@@ -494,6 +426,13 @@
 		)
 	)
 
+	(element LowerLog $autoPerfTestGroup="'logs'"
+		(style
+			(marginBottom = "XS")
+			(hitTest = "false")
+		)
+	)
+
 	(element AngleControl $autoPerfTestGroup="'indicator_angle'"
 		(style
 			(marginBottom = 17)
@@ -521,74 +460,31 @@
 	)
 )
 
-(def element BattleCommanderPortrait () layout=true
-	(scope
-		(var avatarEntity:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
-		(var avatarComponent:gfx = "avatarEntity ? avatarEntity.avatar : null")
-		(var shipId:number = "avatarComponent && avatarComponent.ship && avatarComponent.ship.ref ? avatarComponent.ship.ref.ship.id : 0")
-		(var ownShipEntity:gfx = "shipId ? $datahub.getPrimaryEntity(CC.ownShip, shipId) : null")
-		(var ownShipComponent:gfx = "ownShipEntity && ownShipEntity.hasComponent(CC.ownShip) ? ownShipEntity.ownShip : null")
-		(var crewId:number = "ownShipComponent ? ownShipComponent.crewId : 0")
-		(var crewEntity:gfx = "crewId ? $datahub.getPrimaryEntity(CC.crew, crewId) : null")
-		(var crewComponent:gfx = "crewEntity && crewEntity.hasComponent(CC.crew) ? crewEntity.crew : null")
-		(var portraitUrl:str = "crewComponent && crewComponent.baseUrl ? 'url:' + crewComponent.baseUrl : 'url:../battle_commander/default.png'")
-	)
+(def constant FOCUS_PREFIX {
+	'zh': '被 ', 'en': 'Aimed at by ', 'de': 'Zielscheibe von ', 'fr': 'Visé par ',
+	'ru': 'Под прицелом ', 'ja': '敵艦 ', 'ko': '적함 ', 'es': 'Apuntado por ' })
 
-	(style
-		(position = "absolute")
-		(left = "BATTLE_CAPTAIN_LEFT")
-		(bottom = "BATTLE_CAPTAIN_BOTTOM")
-		(width = "BATTLE_CAPTAIN_WIDTH")
-		(height = "BATTLE_CAPTAIN_HEIGHT")
-	)
+(def constant FOCUS_SUFFIX {
+	'zh': ' 艘敌舰瞄准', 'en': ' ships', 'de': ' Schiffen', 'fr': ' navires',
+	'ru': ' кораблей', 'ja': ' 隻から照準されています', 'ko': ' 척에게 조준되고 있습니다', 'es': ' buques' })
 
-	(block
-		(class $FullsizeAbsolute)
-		(style
-			(hitTest = "false")
-			(backgroundSize = "fill")
-			(bind backgroundImage "portraitUrl")
-		)
-	)
-)
-
-(def element BattleSpotAlert () layout=true
+(def element BattleFocusedByCount () layout=true
 	(scope
 		(var bi:gfx = "$datahub.getSingleEntity(CC.battleIndication)")
-		(var spotType:str = "bi ? bi.alertIndication.spotType : ''" (event "bi.alertIndication.evSpottedChanged"))
+		(var focused:number = "bi ? bi.alertIndication.focusedEnemies : 0" (event "bi.alertIndication.evFocusedEnemiesChanged"))
 
-		(var selfEnt:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
-		(var veh:gfx = "selfEnt && selfEnt.hasComponent(CC.vehicle) ? selfEnt.vehicle : null" (event "selfEnt.evAdded") (event "selfEnt.evRemoved"))
-		(var flags:number = "veh ? veh.visibilityFlags : 0" (event "veh.evVisibilityFlagsChanged"))
-
-		(var isSpotted:bool = "flags > 0")
 		(var locProbe:str = "tr('IDS_DESTROYER')")
 		(var lang:str = "locProbe == '驱逐舰' ? 'zh' : locProbe == 'Zerstörer' ? 'de' : locProbe == 'Эсминец' ? 'ru' : locProbe == '駆逐艦' ? 'ja' : locProbe == '구축함' ? 'ko' : locProbe == 'Destructor' ? 'es' : 'en'")
-		(var typeKey:str = "spotType == 'hydrophone'			? 'hydro' :
-							spotType == 'submarine_locator'	? 'loc' :
-							spotType == 'radar'				? 'radar' :
-							spotType == 'plane'				? 'plane' :
-							spotType == 'ship'				? 'ship'
-															: ''")
-		(var label:str = "typeKey != '' ? BHL_SPOT_PREFIX[lang] + BHL_SPOT_TYPE[lang][typeKey] + BHL_SPOT_SUFFIX[lang] : ''")
 	)
-
-	(style
-		(position = "absolute")
-		(left = "500")
-		(bottom = "156")
-		(width = "420")
-		(hitTest = "false")
-	)
+	(style (position = "absolute"))
 
 	(block
-		(bind visible "isSpotted && label != ''")
-		(style (width = 100%))
-
+		(bind visible "focused > 0")
+		(style (width = "420") (hitTest = false))
 		(tf
-			(class "$TextDefaultBold20NM")
-			(style (textAlign = "left") (width = 100%) (textColor = 0xFFFF8A8A))
-			(bind text "label")
+			(class $TextDefaultBold20NM)
+			(style (textAlign = "left") (textColor = 0xFF3DDC84))
+			(bind text "FOCUS_PREFIX[lang] + focused + FOCUS_SUFFIX[lang]")
 		)
 	)
 )

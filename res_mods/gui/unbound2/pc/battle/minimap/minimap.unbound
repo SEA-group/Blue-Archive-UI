@@ -151,7 +151,7 @@
 	)
 
 	(element MinimapCoordLabels _scaleRatio="scaleRatio" _angleToRotate="angleToRotate" _mapScale="mapScale"
-		(bind visible "coordsVisible")
+		(bind visible "coordsVisible && !_isLoading")
 	)
 )
 
@@ -169,9 +169,10 @@
 
 	
 	(style
-		(bind width "scaleRatio") 
+		(bind width "scaleRatio")
 		(bind height "scaleRatio")
 		(margin = "S")
+		(bind hitTest "!_isLoading")
 	)
 
 	
@@ -254,6 +255,7 @@
 						_itemScale="itemScale"
 						_scaleRatio="displayScaleRatio"
 						_markerSettingsMap="MASKED_MINIMAP_MARKERS_SETTINGS"
+						_isLoading="_isLoading"
 					)
 				)
 				
@@ -271,6 +273,7 @@
 	)
 	
 	(element MinimapCompassPoints __width="scaleRatio" __height="scaleRatio" __scaleIndex="scaleIndex"
+		(bind visible "!_isLoading")
 		(scope 
 			(bind _width "scaleRatio")
 			(bind _height "scaleRatio")
@@ -286,10 +289,10 @@
 	(var scaleIndex:number = "minimapSizeIndexComponent.value" (event "minimapSizeIndexComponent.evValueChanged"))
 	(var mapScale:number = "scaleIndex < LIST_MAP_SCALES.length ? LIST_MAP_SCALES[scaleIndex] : LIST_MAP_SCALES[LIST_MAP_SCALES.length - 1] + SCALE_STEP * (scaleIndex - LIST_MAP_SCALES.length + 1)")
 	(var itemScale:number = "scaleIndex < LIST_ICON_SCALES.length ? LIST_ICON_SCALES[scaleIndex] : LIST_ICON_SCALES[LIST_MAP_SCALES.length - 1]")
-	(var loadingMinimapScale:number = "1.84") 
+	(var loadingMinimapScale:number = "1.755") 
 	(var scaleRatio:number = "MINIMAP_ASSETS_SIZE * (_isLoading ? loadingMinimapScale : mapScale)")
 
-(var waterAlphaComponent:gfx = "$datahub.getPrimaryEntity(CC.minimapOption, SC.Battle.MINIMAP_OPTION.waterAlpha).minimapOption")
+	(var waterAlphaComponent:gfx = "$datahub.getPrimaryEntity(CC.minimapOption, SC.Battle.MINIMAP_OPTION.waterAlpha).minimapOption")
 	(var waterAlpha:number = "waterAlphaComponent.value * 0.01" (event "waterAlphaComponent.evValueChanged"))
 
 	(var mapBorderScale:number = "minimapEntity.mapBorder.ratio")
@@ -326,7 +329,6 @@
 
 (def element MinimapBG (_scaleRatio:number, _mapScale:number, _mapBorderScale:number, _mapBorderMarginX:number, _mapBorderMarginY:number, _showGrid:bool = true, _isLoading:bool = false) layout=true
 	(scope
-		(macro GET_PREF 'uimodMinimapOn' "'ui.isCurrenciesPanelExpanded'")
 		(var scaleRatio:number = "_scaleRatio")
 		(var mapScale:number = "_mapScale")
 		(var mapBorderScale:number = "_mapBorderScale")
@@ -336,6 +338,8 @@
 		(var battleDataEntityCollection:gfx = "$datahub.getCollection(CC.battleData)")
 		(var battleDataEntity:gfx = "battleDataEntityCollection.items[0]")
 		(var mapEntity:gfx = "$datahub.getPrimaryEntity(CC.mapInfo, battleDataEntity.battleInfo.mapId)")
+		(var uimodMinimapPref:gfx = "$datahub.getPrimaryEntity(CC.preference, 'ui.isCurrenciesPanelExpanded')")
+		(var uimodMinimapOn:bool = "uimodMinimapPref ? uimodMinimapPref.preference.value : false" (event "uimodMinimapPref.preference.evValueChanged"))
 
 		(var waterAlphaComponent:gfx = "$datahub.getPrimaryEntity(CC.minimapOption, SC.Battle.MINIMAP_OPTION.waterAlpha).minimapOption")
 		(var waterAlpha:number = "_isLoading ? 1 : waterAlphaComponent.value * 0.01" (event "waterAlphaComponent.evValueChanged"))
@@ -357,6 +361,16 @@
 		)
 	)
 
+	(block
+		(style
+			(position = "absolute")
+		)
+		(controller $Instance renderer='DrawBoundRect' 
+			(args x = "-2" y = "-2" width = "scaleRatio + 2" height = "scaleRatio + 2" color = "0x525869" filled="false" line="2" alpha="1")
+			(bindcall recreate (bind trigger "scaleRatio"))
+			(bind enabled "!_showGrid")
+		)
+	)
 
 	
 	(block
@@ -371,20 +385,7 @@
 		)
 	)
 
-	(block
-		(style
-			(position = "absolute")
-		)
-		(controller $Instance renderer='DrawBoundRect' 
-			(args x = "-2" y = "-2" width = "scaleRatio + 2" height = "scaleRatio + 2" color = "0x525869" filled="false" line="3" alpha="1")
-			(bindcall recreate (bind trigger "scaleRatio"))
-			(bind enabled "!_showGrid")
-		)
-	)
-
 	
-
-
 	(controller $Repeat renderer='MinimapGridVertical' count=10
 		(args _scaleRatio = "scaleRatio")
 		(bind enabled "_showGrid")
